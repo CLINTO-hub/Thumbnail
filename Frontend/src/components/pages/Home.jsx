@@ -1,0 +1,101 @@
+import React, { useContext, useState } from 'react';
+import { authContext } from '../context/AuthContext';
+import uploadImageToCloudinary from '../../../utils/UploadImageToCloudinary';
+import { BASE_URL } from '../../../config';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+
+const Home = () => {
+  const { user,thumbnails,setThumbnails } = useContext(authContext);
+  const navigate = useNavigate();
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewURL, setPreviewURL] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleFileInputChange = async (event) => {
+    const file = event.target.files[0];
+
+    if (file) {
+      const data = await uploadImageToCloudinary(file);
+      setPreviewURL(data.url);
+      setSelectedFile(data.url);
+      console.log('file',selectedFile);
+    }
+  };
+  const submitHandler = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    try {
+      const formData = {
+        imagePath: selectedFile,
+      };
+
+      const res = await fetch(`${BASE_URL}/image/upload/${user._id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': user.apiKey,
+        },
+        credentials: 'include', 
+        body: JSON.stringify(formData),
+      });
+      const { message,thumbnails } = await res.json();
+      setThumbnails(thumbnails)
+      if (!res.ok) {
+        throw new Error(message);
+      }
+
+      setLoading(false);
+      toast.success(message);
+      navigate('/getthumbnails');
+    } catch (error) {
+      toast.error(error.message);
+      setLoading(false);
+      console.log(error);
+    }
+  };
+  if (!user) {
+    return <p className='flex justify-center text-2xl'>Loading...</p>;
+  }
+  return (
+    <div className='flex flex-col items-center h-screen'>
+      <p className='text-2xl font-semibold mt-8'>
+        Welcome back <span className='text-blue-500'>{user.firstname} {user.lastname}</span>
+      </p>
+      {selectedFile &&
+        <figure className='w-[750px] h-[450px] rounded border-1 border-solid border-primaryColor flex items-center justify-center mt-28'>
+          <img src={previewURL} alt='' className='w-full' />
+        </figure>
+      }
+      <div className='mt-5 flex items-center gap-3 mt-20'>
+        <div className='relative w-[160px] h-[50px]'>
+          <input
+            type='file'
+            name='photo'
+            id='customFile'
+            onChange={handleFileInputChange}
+            accept='.jpg, .png'
+            className='absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer'
+          />
+          <label
+            htmlFor='customFile'
+            className='absolute top-0 left-0 w-full h-full flex items-center px-[0.75rem] py-[0.375rem] text-[15px] leading-6 overflow-hidden bg-[#0066ff46] text-headingColor font-semibold rounded-lg truncate cursor-pointer'
+          >
+            Upload cover photo
+          </label>
+        </div>
+
+        <button
+          onClick={submitHandler}
+          className='bg-green-600 hover:bg-green-900 text-white text-[18px] leading-[30px] rounded-lg px-4 py-3'
+        >
+          Generate thumbnail
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Home;
