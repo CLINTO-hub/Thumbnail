@@ -25,7 +25,6 @@ const Signup = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Remove spaces from firstname and lastname
     if (name === 'firstname' || name === 'lastname') {
       setFormData({ ...formData, [name]: value.replace(/\s+/g, '') });
     } else {
@@ -68,9 +67,8 @@ const Signup = () => {
       setLoading(false);
       console.log(error);
     }
-  };
+  }
 
-  // Password strength indicator function
   const getPasswordStrength = () => {
     const { password } = formData;
     if (password.length >= 8) {
@@ -80,7 +78,6 @@ const Signup = () => {
     }
   };
 
-  // Email format validation using regex
   const isEmailValid = () => {
     const { email } = formData;
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
