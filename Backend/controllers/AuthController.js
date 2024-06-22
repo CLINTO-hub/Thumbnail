@@ -16,17 +16,14 @@ const generateUniqueApiKey = async () => {
             isUnique = true;
         }
     }
-    
     return apiKey;
 }
-
 //generate jwt token
 export const generateToken = (user)=>{
     return jwt.sign({id:user._id},process.env.JWT_SECRET,{
         expiresIn:'15d',
     })
 }
-
 //signup controller for user
 export const signup = async (req, res) => {
     try {
@@ -124,7 +121,6 @@ export const login = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 }
-
 export const verifyToken = async (req, res) => {
     try {
         const token = req.body.token;
