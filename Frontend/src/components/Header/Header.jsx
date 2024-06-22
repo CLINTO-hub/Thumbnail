@@ -61,8 +61,11 @@ const Header = () => {
                     <li key={index}>
                       <NavLink
                         to={link.path}
-                        activeClassName="text-blue-600 font-bold"
-                        className="text-black-500 text-lg leading-7 font-bold hover:text-blue-600 whitespace-nowrap"
+                        className={({ isActive }) =>
+                          isActive
+                            ? "text-blue-600 font-bold"
+                            : "text-black-500 text-lg leading-7 font-bold hover:text-blue-600 whitespace-nowrap"
+                        }
                       >
                         {link.display}
                       </NavLink>
@@ -75,7 +78,7 @@ const Header = () => {
               {token && user ? (
                 <div className="flex items-center">
                   <figure className="w-[35px] h-[35px] rounded-full cursor-pointer mr-2">
-                    <img src={user?.photo} className="w-full h-full rounded-full" alt="" />
+                    <img src={user?.photo} className="w-full h-full rounded-full" alt="User" />
                   </figure>
                   <button
                     onClick={handleLogout}

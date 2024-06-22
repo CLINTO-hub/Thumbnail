@@ -13,8 +13,8 @@ const Login = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [emailValid, setEmailValid] = useState(true); // State to track email validity
-  const [passwordStrength, setPasswordStrength] = useState(''); // State to track password strength
+  const [emailValid, setEmailValid] = useState(true); 
+  const [passwordStrength, setPasswordStrength] = useState(''); 
   const navigate = useNavigate();
   const { user, dispatch } = useContext(authContext);
 
@@ -63,13 +63,11 @@ const Login = () => {
   };
 
   const validateEmail = (email) => {
-    // Regular expression for email validation
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     setEmailValid(emailRegex.test(email));
   };
 
   const validatePassword = (password) => {
-    // Update password strength based on length
     if (password.length >= 8) {
       setPasswordStrength('Strong password');
     } else {

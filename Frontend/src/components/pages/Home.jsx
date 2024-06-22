@@ -4,32 +4,32 @@ import uploadImageToCloudinary from '../../../utils/UploadImageToCloudinary';
 import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import HashLoader from 'react-spinners/HashLoader.js';
 
 const Home = () => {
-  const { user,thumbnails,setThumbnails } = useContext(authContext);
+  const { user, thumbnails, setThumbnails } = useContext(authContext);
   const navigate = useNavigate();
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewURL, setPreviewURL] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleFileInputChange = async (event) => {
+  const handleFileInputChange = (event) => {
     const file = event.target.files[0];
-
     if (file) {
-      const data = await uploadImageToCloudinary(file);
-      setPreviewURL(data.url);
-      setSelectedFile(data.url);
-      console.log('file',selectedFile);
+      setSelectedFile(file);
+      setPreviewURL(URL.createObjectURL(file));
     }
   };
+
   const submitHandler = async (event) => {
     event.preventDefault();
     setLoading(true);
 
     try {
+      const data = await uploadImageToCloudinary(selectedFile);
       const formData = {
-        imagePath: selectedFile,
+        imagePath: data.url,
       };
 
       const res = await fetch(`${BASE_URL}/image/upload/${user._id}`, {
@@ -38,11 +38,11 @@ const Home = () => {
           'Content-Type': 'application/json',
           'x-api-key': user.apiKey,
         },
-        credentials: 'include', 
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
-      const { message,thumbnails } = await res.json();
-      setThumbnails(thumbnails)
+      const { message, thumbnails } = await res.json();
+      setThumbnails(thumbnails);
       if (!res.ok) {
         throw new Error(message);
       }
@@ -56,20 +56,22 @@ const Home = () => {
       console.log(error);
     }
   };
+
   if (!user) {
     return <p className='flex justify-center text-2xl'>Loading...</p>;
   }
+  
   return (
     <div className='flex flex-col items-center h-screen'>
       <p className='text-2xl font-semibold mt-8'>
-        Welcome back <span className='text-blue-500'>{user.firstname} {user.lastname}</span>
+        Welcome back <span className='text-blue-500'>{user?.firstname} {user?.lastname}</span>
       </p>
-      {selectedFile &&
+      {previewURL && (
         <figure className='w-[750px] h-[450px] rounded border-1 border-solid border-primaryColor flex items-center justify-center mt-28'>
-          <img src={previewURL} alt='' className='w-full' />
+          <img src={previewURL} alt='Preview' className='w-full' />
         </figure>
-      }
-      <div className='mt-5 flex items-center gap-3 mt-20'>
+      )}
+      <div className='mt-5 flex items-center gap-3'>
         <div className='relative w-[160px] h-[50px]'>
           <input
             type='file'
@@ -94,6 +96,7 @@ const Home = () => {
           Generate thumbnail
         </button>
       </div>
+      {loading && <HashLoader size={50} color={"#123abc"} loading={loading} />}
     </div>
   );
 };
