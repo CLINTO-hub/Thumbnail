@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config.js';
 import { toast } from 'react-toastify';
-import { authContext } from '../context/AuthContext.jsx';
 import HashLoader from 'react-spinners/HashLoader.js';
 import Cookies from 'js-cookie';
+import { useDispatch } from 'react-redux';
+import { login } from '../AuthSlice.js';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -13,45 +14,39 @@ const Login = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [emailValid, setEmailValid] = useState(true); 
-  const [passwordStrength, setPasswordStrength] = useState(''); 
+  const [emailValid, setEmailValid] = useState(true);
+  const [passwordStrength, setPasswordStrength] = useState('');
   const navigate = useNavigate();
-  const { user, dispatch } = useContext(authContext);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const checkTokenValidity = async (token) => {
-      try {
-        const res = await fetch(`${BASE_URL}/auth/verifyToken`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ token })
-        });
-        if (!res.ok) {
-          throw new Error('Invalid token');
-        }
-        const result = await res.json();
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: {
-            user: result.user,
-            token: token
+    const verifyToken = async () => {
+      const jwtToken = Cookies.get('jwt');
+      if (jwtToken) {
+        try {
+          const res = await fetch(`${BASE_URL}/auth/verifyToken`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: jwtToken })
+          });
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.message);
           }
-        });
-        navigate('/home');
-      } catch (error) {
-        console.log(error.message);
+          navigate('/home');
+        } catch (error) {
+          Cookies.remove('jwt');
+          navigate('/login');
+          toast.error("Session expired, please log in again");
+        }
       }
     };
+    verifyToken();
+  }, [navigate]);
 
-    const storedUser = localStorage.getItem('User') ? JSON.parse(localStorage.getItem('User')) : null;
-    if (storedUser && storedUser.token) {
-      checkTokenValidity(storedUser.token);
-    }
-  }, [navigate, dispatch]);
-
-  const handleInputChange = e => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
@@ -75,7 +70,7 @@ const Login = () => {
     }
   };
 
-  const submitHandler = async event => {
+  const submitHandler = async (event) => {
     event.preventDefault();
     setLoading(true);
 
@@ -92,15 +87,12 @@ const Login = () => {
         throw new Error(result.message);
       }
       Cookies.set('jwt', result.token, { expires: 7 });
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: {
-          user: result.data,
-          token: result.token,
-          apiKey: result.apiKey
-        }
-      });
-      localStorage.setItem('User', JSON.stringify({ token: result.token }));
+      dispatch(login({
+        user: result.data,
+        token: result.token,
+        apiKey: result.apiKey,
+      }));
+      localStorage.setItem('User', JSON.stringify({photo: result.data.photo }));
       setLoading(false);
       toast.success(result.message);
       navigate('/home');

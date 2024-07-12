@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
-import { authContext } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
 const Thumbnails = () => {
-  const { thumbnails } = useContext(authContext);
+  const thumbnails = useSelector((state) => state.auth.thumbnails);
 
   const platforms = ['Instagram', 'Facebook', 'Twitter', 'YouTube'];
 

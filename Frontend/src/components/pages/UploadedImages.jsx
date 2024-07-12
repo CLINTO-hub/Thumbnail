@@ -1,23 +1,27 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { authContext } from '../context/AuthContext';
+import React, { useEffect, useState } from 'react';
 import HashLoader from 'react-spinners/HashLoader';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../../config';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { setThumbnails } from '../AuthSlice'; // Import the setThumbnails action
 
 const UploadedImages = () => {
   const [loading, setLoading] = useState(true);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [error, setError] = useState(null);
-  const { user } = useContext(authContext);
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const fetchUploadedImages = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/image/getalluploadimages/${user._id}`, {
+      const res = await fetch(`${BASE_URL}/image/getalluploadimages`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', 
+        credentials: 'include',
       });
       const result = await res.json();
       if (!res.ok) {
@@ -48,6 +52,26 @@ const UploadedImages = () => {
       });
   };
 
+  const handleImageClick = async (image) => {
+    try {
+      const res = await fetch(`${BASE_URL}/image/getthumbnails/${encodeURIComponent(image)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message);
+      }
+      dispatch(setThumbnails(result.generatedThumbnails));
+      navigate('/getthumbnails');
+    } catch (error) {
+      toast.error('Failed to fetch thumbnails');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -63,21 +87,29 @@ const UploadedImages = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4 flex justify-center">Uploaded Images</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
         {uploadedImages.length === 0 ? (
           <p>No images uploaded.</p>
         ) : (
           uploadedImages.map((image, index) => (
-            <div key={index} className="image-item">
-              <img className="w-full h-auto object-cover mb-2" src={image} alt={`Uploaded ${index}`} />
-              <div className="flex items-center">
+            <div key={index} className="image-item p-2 border rounded-xl shadow-lg bg-white">
+              <img
+                className="w-full h-80 object-cover mb-5 rounded-xl cursor-pointer"
+                src={image.originalImage}
+                alt={`Uploaded ${index}`}
+                onClick={() => handleImageClick(image.originalImage)}
+              />
+              <div className="flex items-center justify-between">
                 <button
-                  className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-                  onClick={() => copyToClipboard(image)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded"
+                  onClick={() => copyToClipboard(image.originalImage)}
                 >
                   Copy
                 </button>
-                <span className="text-sm text-gray-600 truncate w-full">{image}</span>
+                <div className="ml-2 flex flex-col">
+                  <span className="text-sm text-gray-600 truncate block mr-80">{image.originalImage}</span>
+                  <span className="text-base font-semibold text-gray-600 truncate block">Uploaded by: {image.username}</span>
+                </div>
               </div>
             </div>
           ))

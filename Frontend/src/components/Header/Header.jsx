@@ -1,9 +1,12 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useNavigate, NavLink, Link } from 'react-router-dom';
 import headerBackground from '../../assets/images/Header.png';
-import { authContext } from '../context/AuthContext.jsx';
 import logo from '../../assets/images/logo.png';
 import Cookies from 'js-cookie';
+import { useSelector } from 'react-redux';
+import { BASE_URL } from '../../../config.js';
+import { useDispatch } from 'react-redux';
+import { logout } from '../AuthSlice.js';
 
 const navLinks = [
   { path: '/Home', display: 'Home' },
@@ -15,14 +18,31 @@ const Header = () => {
   const menuRef = useRef(null);
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
-  const { user, token, dispatch } = useContext(authContext);
+  const user = localStorage.getItem('User')
+  const userDetails = user ? JSON.parse(user) : null;
+  const token = Cookies.get('jwt');
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
-  const handleLogout = () => {
-    Cookies.remove('jwt');
-    localStorage.removeItem('User'); 
-    dispatch({ type: 'LOGOUT' });
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        Cookies.remove('jwt');
+        localStorage.removeItem('User');
+        dispatch(logout())
+        navigate('/login');
+      } else {
+        const result = await response.json();
+        console.error('Logout failed:', result.message);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const handleScroll = () => {
@@ -54,7 +74,7 @@ const Header = () => {
             <div className="flex items-center">
               <img src={logo} alt="Logo" className="w-[140px] h-[80px]" />
             </div>
-            {token && user && (
+            {token && userDetails && (
               <div className="navigation flex justify-center w-full" ref={menuRef}>
                 <ul className="menu flex items-center gap-8 md:gap-18 lg:gap-28">
                   {navLinks.map((link, index) => (
@@ -75,10 +95,10 @@ const Header = () => {
               </div>
             )}
             <div className="flex items-center gap-4 ml-auto">
-              {token && user ? (
+              {token && userDetails ? (
                 <div className="flex items-center">
                   <figure className="w-[35px] h-[35px] rounded-full cursor-pointer mr-2">
-                    <img src={user?.photo} className="w-full h-full rounded-full" alt="User" />
+                    <img src={userDetails?.photo} className="w-full h-full rounded-full" alt="User" />
                   </figure>
                   <button
                     onClick={handleLogout}

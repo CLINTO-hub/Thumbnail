@@ -4,6 +4,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv'
 import User from '../models/userModel.js';
+import Blog from '../models/blogModel.js';
 
 dotenv.config()
 
@@ -80,9 +81,24 @@ export const uploadImage = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        user.uploadimg.push(imagePath);
-        user.geneatedThumbnail.push(...thumbnails);
-        await user.save();
+        // Find existing Blog entry for the user
+        let blog = await Blog.findOne({ user: user._id });
+
+        if (!blog) {
+            // Create a new Blog entry if not found
+            blog = new Blog({
+                user: user._id,
+                images: []
+            });
+        }
+
+        // Append new image and thumbnails to the images array
+        blog.images.push({
+            originalImage: imagePath,
+            thumbnails
+        });
+
+        await blog.save();
 
         res.status(201).json({ message: 'Image uploaded and thumbnails generated', thumbnails });
     } catch (error) {
@@ -93,31 +109,53 @@ export const uploadImage = async (req, res) => {
 
 export const getAllUploadedImages = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        const blogs = await Blog.find().populate('user', 'firstname lastname');
+
+        if (!blogs || blogs.length === 0) {
+            return res.status(404).json({ message: 'No images found' });
         }
 
-        const uploadedImages = user.uploadimg;
+        const uploadedImages = blogs.flatMap(blog => 
+            blog.images.map(image => ({
+                originalImage: image.originalImage,
+                username: `${blog.user.firstname} ${blog.user.lastname}`
+            }))
+        );
+
         return res.status(200).json({ uploadedImages });
     } catch (error) {
         return res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
+
 export const getAllGeneratedImages = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        const { imageUrl } = req.params;
+
+        const blogs = await Blog.find();
+
+        if (!blogs || blogs.length === 0) {
+            return res.status(404).json({ message: 'No images found' });
         }
 
-        const geneatedThumbnail = user.geneatedThumbnail;
-        return res.status(200).json({ geneatedThumbnail });
+        let generatedThumbnails = null;
+
+        for (const blog of blogs) {
+            const image = blog.images.find(img => img.originalImage === imageUrl);
+            if (image) {
+                generatedThumbnails = image.thumbnails;
+                break;
+            }
+        }
+
+        if (!generatedThumbnails) {
+            return res.status(404).json({ message: 'Thumbnails not found for the provided image URL' });
+        }
+
+        return res.status(200).json({ generatedThumbnails });
     } catch (error) {
         return res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
-
-
 

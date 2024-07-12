@@ -7,7 +7,7 @@ const router = express.Router()
 
 
 router.post('/upload/:id',protectRoute,ValidateApiKey,uploadImage)
-router.get('/getalluploadimages/:id',protectRoute,getAllUploadedImages)
-router.get('/getallgeneratedimages/:id',protectRoute,getAllGeneratedImages)
+router.get('/getalluploadimages',protectRoute,getAllUploadedImages)
+router.get('/getthumbnails/:imageUrl', protectRoute, getAllGeneratedImages);
 
 export default router

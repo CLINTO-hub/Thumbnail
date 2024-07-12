@@ -1,18 +1,25 @@
-import React, { useContext, useState } from 'react';
-import { authContext } from '../context/AuthContext';
+import React, { useContext, useEffect, useState } from 'react';
 import uploadImageToCloudinary from '../../../utils/UploadImageToCloudinary';
 import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import HashLoader from 'react-spinners/HashLoader.js';
+import { setThumbnails } from '../AuthSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import Cookies from 'js-cookie';
 
 const Home = () => {
-  const { user, thumbnails, setThumbnails } = useContext(authContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+
+  const user = useSelector((state) => state.auth.user);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewURL, setPreviewURL] = useState('');
   const [loading, setLoading] = useState(false);
+
+
+
 
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
@@ -42,7 +49,7 @@ const Home = () => {
         body: JSON.stringify(formData),
       });
       const { message, thumbnails } = await res.json();
-      setThumbnails(thumbnails);
+      dispatch(setThumbnails(thumbnails));
       if (!res.ok) {
         throw new Error(message);
       }
@@ -67,8 +74,8 @@ const Home = () => {
         Welcome back <span className='text-blue-500'>{user?.firstname} {user?.lastname}</span>
       </p>
       {previewURL && (
-        <figure className='w-[750px] h-[450px] rounded border-1 border-solid border-primaryColor flex items-center justify-center mt-28'>
-          <img src={previewURL} alt='Preview' className='w-full' />
+        <figure className='w-[750px] h-[450px] rounded border border-solid border-primaryColor flex items-center justify-center mt-28 overflow-hidden'>
+          <img src={previewURL} alt='Preview' className='w-full h-full object-cover' />
         </figure>
       )}
       <div className='mt-5 flex items-center gap-3'>
