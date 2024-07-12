@@ -110,7 +110,6 @@ export const login = async (req, res) => {
                 httpOnly: true,
                 maxAge: 60 * 60 * 24 * 15, 
                 sameSite: 'strict',
-                secure: process.env.NODE_ENV === 'production'
             }));
             res.status(200).json({
                 success: true, message: 'Successfully logged in', apiKey: user.apiKey, token, data:{...rest}

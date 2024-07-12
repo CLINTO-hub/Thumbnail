@@ -7,9 +7,9 @@ import { BASE_URL } from '../../../config';
 
 const ProtectedRoute = ({ children }) => {
     const dispatch = useDispatch();
-    const token = Cookies.get('jwt'); // Get the token from cookies
-    const user = useSelector((state) => state.auth.user); // Get the user from Redux state
-    const isLoggedIn = !!token; // Check if the token exists
+    const token = Cookies.get('jwt'); 
+    const user = useSelector((state) => state.auth.user); 
+    const isLoggedIn = !!token; 
 
     useEffect(() => {
         const verifyToken = async () => {

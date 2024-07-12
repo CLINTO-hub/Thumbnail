@@ -30,14 +30,7 @@ const userSchema = new mongoose.Schema({
     gender:{
         type:String,
         required:true,
-    },
-    uploadimg:[{
-        type:String,
-    }],
-    geneatedThumbnail:[{
-        type:String
-    }]
-    
+    },   
 })
 
 

@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { BASE_URL } from '../../../config';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { setThumbnails } from '../AuthSlice'; // Import the setThumbnails action
+import { setThumbnails } from '../AuthSlice'; 
 
 const UploadedImages = () => {
   const [loading, setLoading] = useState(true);

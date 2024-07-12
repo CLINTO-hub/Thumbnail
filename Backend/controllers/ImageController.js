@@ -81,18 +81,18 @@ export const uploadImage = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Find existing Blog entry for the user
+      
         let blog = await Blog.findOne({ user: user._id });
 
         if (!blog) {
-            // Create a new Blog entry if not found
+           
             blog = new Blog({
                 user: user._id,
                 images: []
             });
         }
 
-        // Append new image and thumbnails to the images array
+        
         blog.images.push({
             originalImage: imagePath,
             thumbnails

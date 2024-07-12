@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import HashLoader from 'react-spinners/HashLoader.js';
 import { setThumbnails } from '../AuthSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import Cookies from 'js-cookie';
+
 
 const Home = () => {
   const navigate = useNavigate();
