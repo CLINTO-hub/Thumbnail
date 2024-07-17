@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import uploadImageToCloudinary from '../../../utils/UploadImageToCloudinary';
 import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
@@ -7,19 +7,14 @@ import HashLoader from 'react-spinners/HashLoader.js';
 import { setThumbnails } from '../AuthSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-
 const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
 
   const user = useSelector((state) => state.auth.user);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewURL, setPreviewURL] = useState('');
   const [loading, setLoading] = useState(false);
-
-
-
 
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
@@ -94,16 +89,18 @@ const Home = () => {
           >
             Upload cover photo
           </label>
-        </div>
+        </div>     
 
-        <button
-          onClick={submitHandler}
-          className='bg-green-600 hover:bg-green-900 text-white text-[18px] leading-[30px] rounded-lg px-4 py-3'
-        >
-          Generate thumbnail
-        </button>
+        <div className='mt-0'>
+          <button
+            disabled={loading}
+            onClick={submitHandler}
+            className='bg-green-600 hover:bg-green-900 text-white text-[18px] leading-[30px] rounded-lg px-4 py-3'
+          >
+            {loading ? <HashLoader size={25} color='#fff' /> : 'Generate thumbnail'}
+          </button>
+        </div>
       </div>
-      {loading && <HashLoader size={50} color={"#123abc"} loading={loading} />}
     </div>
   );
 };

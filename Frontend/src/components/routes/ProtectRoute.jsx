@@ -3,7 +3,8 @@ import { Navigate } from "react-router-dom";
 import Cookies from 'js-cookie';
 import { useSelector, useDispatch } from "react-redux";
 import { login } from "../AuthSlice";
-import { BASE_URL } from '../../../config';
+import { BASE_URL } from "../../../config";
+
 
 const ProtectedRoute = ({ children }) => {
     const dispatch = useDispatch();
